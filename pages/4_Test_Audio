@@ -1,0 +1,37 @@
+import streamlit as st
+import openai
+from audiorecorder import audiorecorder
+from st_audiorec import st_audiorec
+
+########################################################################################################################
+# TEST AUDIO
+########################################################################################################################
+
+path_to_audio = "path/to/file.mp3"
+transcript = None
+
+
+@st.cache_data
+def transcribe(audio_path):
+    audio_path = open(audio_path, "rb")
+    transcript = openai.Audio.transcribe("whisper-1", audio_path)
+    return transcript
+
+
+audio = audiorecorder("Click to record", "Click to stop recording")
+
+if not audio.empty():
+    # To play audio in frontend:
+    st.audio(audio.export(format='mp3').read())
+
+    # To save audio to a file, use pydub export method:
+    audio.export("audio.mp3", format="mp3")
+    st.write("Transcription: ", transcribe("audio.mp3"))
+    # To get audio properties, use pydub AudioSegment properties:
+    st.write(f"Frame rate: {audio.frame_rate},"
+             f"Frame width: {audio.frame_width}, Duration: {audio.duration_seconds} seconds")
+
+wav_audio_data = st_audiorec()
+
+if wav_audio_data is not None:
+    st.audio(wav_audio_data, format='audio/wav')

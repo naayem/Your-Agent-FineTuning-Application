@@ -1,0 +1,27 @@
+{
+    "cSpell.words": [
+        "acemeco",
+        "astype",
+        "audiorec",
+        "audiorecorder",
+        "convo",
+        "dataframe",
+        "getpreferredencoding",
+        "iterrows",
+        "justai",
+        "langchain",
+        "Miaw",
+        "openai",
+        "openft",
+        "Predibase",
+        "pydub",
+        "selectbox",
+        "streamlit",
+        "tiktoken",
+        "Tuningfunctions"
+    ],
+    "flake8.args": [
+        "--max-line-length=120"
+     ]
+}
+
