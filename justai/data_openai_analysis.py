@@ -1,9 +1,11 @@
+import random
 import streamlit as st
 
 import json
 import tiktoken
 import numpy as np
 from collections import defaultdict
+import matplotlib.pyplot as plt
 
 
 def data_loading_openft(data_path="data/toy_chat_fine_tuning.jsonl"):
@@ -12,11 +14,6 @@ def data_loading_openft(data_path="data/toy_chat_fine_tuning.jsonl"):
     with open(data_path, 'r', encoding='utf-8') as f:
         dataset = [json.loads(line) for line in f]
 
-    # Initial dataset stats
-    st.write("Num examples:", len(dataset))
-    st.write("First example:")
-    for message in dataset[0]["messages"]:
-        st.write(message)
     return dataset
 
 
@@ -52,11 +49,11 @@ def validate_format(dataset):
             format_errors["example_missing_assistant_message"] += 1
 
     if format_errors:
-        st.write("Found errors:")
+        st.warning("Found errors:")
         for k, v in format_errors.items():
             st.write(f"{k}: {v}")
     else:
-        st.write("No errors found")
+        st.success("No errors found")
     return format_errors
 
 
@@ -86,10 +83,19 @@ def num_assistant_tokens_from_messages(messages):
 
 
 def print_distribution(values, name):
-    st.write(f"\n#### Distribution of {name}:")
-    st.write(f"min / max: {min(values)}, {max(values)}")
-    st.write(f"mean / median: {np.mean(values)}, {np.median(values)}")
-    st.write(f"p5 / p95: {np.quantile(values, 0.1)}, {np.quantile(values, 0.9)}")
+    with st.expander(f"\n `{name}` Distribution:"):
+        dist1, dist2, dist3 = st.columns(3)
+        dist1.metric("min / max:", f"{min(values)} / {max(values)}")
+        dist2.metric("mean / median:", f"{np.mean(values):.2f} / {np.median(values):.2f}")
+        dist3.metric("p5 / p95:", f"{np.quantile(values, 0.1):.2f} / {np.quantile(values, 0.9):.2f}")
+
+        plt.figure(figsize=(8, 1))
+        plt.boxplot(values, vert=False)
+        plt.title("Boxplot of num_total_tokens_per_example")
+        plt.xticks(rotation=45)
+        plt.xlabel("Number of Tokens")
+
+        st.pyplot(plt)
 
 
 def count_tokens_and_data_warnings(dataset):
@@ -110,17 +116,26 @@ def count_tokens_and_data_warnings(dataset):
         convo_lens.append(num_tokens_from_messages(messages))
         assistant_message_lens.append(num_assistant_tokens_from_messages(messages))
 
-    st.write("Num examples missing system message:", n_missing_system)
-    st.write("Num examples missing user message:", n_missing_user)
+    size_cols = st.columns(3)
+    st.write("First example from the dataset:")
+    for i, message in enumerate(dataset[0]["messages"]):
+        size_cols[i].write(f"{i+1}- {message['role']}:")
+        size_cols[i].json(message, expanded=False)
+    size_cols[0].metric("Num examples:", len(dataset))
+    size_cols[1].metric("Num examples missing system message:", n_missing_system)
+    size_cols[2].metric("Num examples missing user message:", n_missing_user)
     print_distribution(n_messages, "num_messages_per_example")
     print_distribution(convo_lens, "num_total_tokens_per_example")
     print_distribution(assistant_message_lens, "num_assistant_tokens_per_example")
     n_too_long = sum(convo_len > 4096 for convo_len in convo_lens)
-    st.write(f"\n{n_too_long} examples may be over the 4096 token limit, they will be truncated during fine-tuning")
+    if n_too_long == 0:
+        st.success("No examples are over the 4096 token limit")
+    else:
+        st.warning(f"\n{n_too_long} examples may be over the 4096 token limit, they'll be truncated during fine-tuning")
     return convo_lens
 
 
-def estimate_cost(dataset, convo_lens):
+def estimate_cost(dataset, convo_lens, n_epochs_manual, cost_per_1k_tokens):
     # Pricing and default n_epochs estimate
     MAX_TOKENS_PER_EXAMPLE = 4096
 
@@ -130,18 +145,28 @@ def estimate_cost(dataset, convo_lens):
     MIN_DEFAULT_EPOCHS = 1
     MAX_DEFAULT_EPOCHS = 25
 
-    n_epochs = TARGET_EPOCHS
+    n_epochs_default = TARGET_EPOCHS
     n_train_examples = len(dataset)
     if n_train_examples * TARGET_EPOCHS < MIN_TARGET_EXAMPLES:
-        n_epochs = min(MAX_DEFAULT_EPOCHS, MIN_TARGET_EXAMPLES // n_train_examples)
+        n_epochs_default = min(MAX_DEFAULT_EPOCHS, MIN_TARGET_EXAMPLES // n_train_examples)
     elif n_train_examples * TARGET_EPOCHS > MAX_TARGET_EXAMPLES:
-        n_epochs = max(MIN_DEFAULT_EPOCHS, MAX_TARGET_EXAMPLES // n_train_examples)
+        n_epochs_default = max(MIN_DEFAULT_EPOCHS, MAX_TARGET_EXAMPLES // n_train_examples)
 
     n_billing_tokens_in_dataset = sum(min(MAX_TOKENS_PER_EXAMPLE, length) for length in convo_lens)
-    st.write(f"Dataset has ~{n_billing_tokens_in_dataset} tokens that will be charged for during training")
-    st.write(f"By default, you'll train for {n_epochs} epochs on this dataset")
-    st.write(f"By default, you'll be charged for ~{n_epochs * n_billing_tokens_in_dataset} tokens")
 
-    cost_per_1k_tokens = 0.0080
-    st.write(f"The cost of training per 1k tokens is ```$ 0.0080```"
-             f", so the total cost is ~${n_epochs * n_billing_tokens_in_dataset * cost_per_1k_tokens /1000:.2f}")
+    col1, col2 = st.columns(2)
+    col1.write(
+        f"1️⃣ Dataset has `~{n_billing_tokens_in_dataset}` tokens that will be charged for during training `(1 epoch)`\n\n"
+        f"2️⃣ \n - By default, you'll train for `{n_epochs_default}` epochs on this dataset\n\n - Or manually chosen `{n_epochs_manual}` epochs\n\n"
+        f"3️⃣ \n By default, you'll be charged for `~{n_epochs_default * n_billing_tokens_in_dataset}` tokens\n\n - Or manually chosen `~{n_epochs_manual * n_billing_tokens_in_dataset}` tokens"
+        )
+
+    col2.write(
+        f"4️⃣ The cost of training per 1k tokens is ```$ {cost_per_1k_tokens:.4f}```\n\n"
+        f"5️⃣ \n - so the total cost for `{n_epochs_default} epochs` by default is `~${n_epochs_default * n_billing_tokens_in_dataset * cost_per_1k_tokens /1000:.2f}`\n\n - or manually chosen `{n_epochs_manual} epochs` `~${n_epochs_manual * n_billing_tokens_in_dataset * cost_per_1k_tokens /1000:.2f}`"
+        )
+    st.divider()
+    col1, col2 = st.columns(2)
+    col1.metric("Total default cost", f"{n_epochs_default * n_billing_tokens_in_dataset * cost_per_1k_tokens / 1000 :.2f} $")
+    col2.metric("Total manual cost", f"{n_epochs_manual * n_billing_tokens_in_dataset * cost_per_1k_tokens / 1000 :.2f} $")
+

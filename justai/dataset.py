@@ -91,7 +91,7 @@ def template_message_format_display():
                 ]
             }
 
-    st.json(template_message_format)
+    st.json(template_message_format, expanded=False)
 
     return template_message_format
 
@@ -109,27 +109,38 @@ def populate_template(template, user_message, assistant_message):
     return populated_template
 
 
-def write_to_jsonl(dataframe, template, path):
+def construct_user_assistant_message(*args):
+    # Concatenate multiple columns to create the user message
+    return ' '.join(map(str, args))
+
+
+def write_to_jsonl(dataframe, user_message_columns, assistant_message_columns, template, path):
     with open(path, 'w') as file:
         for _, row in dataframe.iterrows():
-            user_message = construct_user_message(row['instruction'], row['input'])
-            populated_template = populate_template(template, user_message, row['output'])
+            user_message_values = [row[column] for column in user_message_columns]
+            user_message = construct_user_assistant_message(*user_message_values)
+
+            assistant_message_values = [row[column] for column in assistant_message_columns]
+            assistant_message = construct_user_assistant_message(*assistant_message_values)
+
+            populated_template = populate_template(template, user_message, assistant_message)
+
             file.write(json.dumps(populated_template) + '\n')
 
 
-def iio_jsonl_formatting(dataframe, template_message_format):
+def iio_jsonl_formatting(dataframe, template_message_format, user_message_columns, assistant_message_columns):
     paths = {
-        0: 'output_train.jsonl',
-        1: 'output_valid.jsonl',
-        2: 'output_test.jsonl'
+        0: 'data/openai_ready/output_train.jsonl',
+        1: 'data/openai_ready/output_valid.jsonl',
+        2: 'data/openai_ready/output_test.jsonl'
     }
 
     for split, path in paths.items():
         split_df = dataframe[dataframe['split'] == split]
-        write_to_jsonl(split_df, template_message_format, path)
+
+        write_to_jsonl(split_df, user_message_columns, assistant_message_columns, template_message_format, path)
 
 
-@st.cache_data
 def format_dataframe_for_display(path='data/openai_ready/output_train.jsonl'):
     # Read the JSONL file and convert it to a DataFrame
     data = []
