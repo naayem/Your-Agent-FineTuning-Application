@@ -42,7 +42,7 @@ with col1.form("New entry"):
             )
         exchanges.append((user_message, assistant_message))
     test_data = st.data_editor(exchanges)
-    st.write(test_data)
+    #st.write(test_data)
 
     st.form_submit_button("Add to dataset")
 
@@ -55,8 +55,8 @@ for user_message_exchange, assistant_message_exchange in exchanges:
     conversation.append({"role": "system", "content": assistant_message_exchange})
 
 st.table(conversation)
-test_data = st.data_editor(conversation, use_container_width=True)
-st.write(test_data)
+#test_data = st.data_editor(conversation, use_container_width=True)
+#st.write(test_data)
 
 with col2.form("Generate Entry"):
     prompt_gen_conv = st.text_area(
