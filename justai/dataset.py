@@ -2,21 +2,25 @@ import json
 import streamlit as st
 import numpy as np
 import pandas as pd
+from justai.use_cases.conversation_use_cases import ConversationUseCases
 
 
 @st.cache_data
-def import_gen_dataset():
+def import_gen_dataset(_conversation_use_cases: ConversationUseCases, agent_name: str):
     progress_bar = st.progress(0, "Processing dataset")
     status_text = st.empty()
 
     status_text.text("Initializing seed...")
     np.random.seed(123)
     progress_bar.progress(10, "Processing dataset")
-    status_text.text("Initialized seed...")
 
-    status_text.text("loading dataframe from link...")
-    df = pd.read_json("https://raw.githubusercontent.com/sahil280114/codealpaca/master/data/code_alpaca_20k.json")
+    status_text.text("loading dataframe from database...")
+    conversations = _conversation_use_cases.get_by_agent_name(agent_name)
+    progress_bar.progress(40, "Processing dataset")
+    conversations_data = [conversation.to_dict() for conversation in conversations]
+
     progress_bar.progress(60, "Processing dataset")
+    conversations_df = pd.DataFrame(conversations_data)
     status_text.text("Loaded dataset...")
 
     # We're going to create a new column called `split` where:
@@ -24,7 +28,7 @@ def import_gen_dataset():
     # 5% will be assigned a value of 1 -> validation set
     # 5% will be assigned a value of 2 -> test set
     status_text.text("Calculate the number of rows for each split value...")
-    total_rows = len(df)
+    total_rows = len(conversations_df)
     split_0_count = int(total_rows * 0.9)
     split_1_count = int(total_rows * 0.05)
     split_2_count = total_rows - split_0_count - split_1_count
@@ -47,18 +51,18 @@ def import_gen_dataset():
     status_text.text("Array shuffled")
 
     status_text.text("Add the 'split' column to the DataFrame...")
-    df['split'] = split_values
-    df['split'] = df['split'].astype(int)
+    conversations_df['split'] = split_values
+    conversations_df['split'] = conversations_df['split'].astype(int)
     progress_bar.progress(85, "Processing dataset")
     status_text.text("'Split' column added to the DataFrame'")
 
     status_text.text("For this webinar,"
                      "we will just 500 rows of this dataset."
                      "Truncating...")
-    df = df.head(n=500)
+    conversations_df = conversations_df.head(n=500)
     progress_bar.progress(100, "Processing dataset")
     status_text.text("done")
-    return df
+    return conversations_df
 
 
 @st.cache_data
@@ -114,7 +118,7 @@ def construct_user_assistant_message(*args):
     return ' '.join(map(str, args))
 
 
-def write_to_jsonl(dataframe, user_message_columns, assistant_message_columns, template, path):
+def write_iio_to_jsonl(dataframe, user_message_columns, assistant_message_columns, template, path):
     with open(path, 'w') as file:
         for _, row in dataframe.iterrows():
             user_message_values = [row[column] for column in user_message_columns]
@@ -138,7 +142,28 @@ def iio_jsonl_formatting(dataframe, template_message_format, user_message_column
     for split, path in paths.items():
         split_df = dataframe[dataframe['split'] == split]
 
-        write_to_jsonl(split_df, user_message_columns, assistant_message_columns, template_message_format, path)
+        write_iio_to_jsonl(split_df, user_message_columns, assistant_message_columns, template_message_format, path)
+
+
+def messages_jsonl_formatting(dataframe, messages_column):
+    paths = {
+        0: 'data/openai_ready/output_train.jsonl',
+        1: 'data/openai_ready/output_valid.jsonl',
+        2: 'data/openai_ready/output_test.jsonl'
+    }
+
+    for split, path in paths.items():
+        split_df = dataframe[dataframe['split'] == split]
+
+        write_messages_to_jsonl(split_df, messages_column, path)
+
+
+def write_messages_to_jsonl(dataframe, messages_column, path):
+    with open(path, 'w') as file:
+        for _, row in dataframe.iterrows():
+            messages_json = {"messages": row[messages_column].to_list()[0]}
+
+            file.write(json.dumps(messages_json) + '\n')
 
 
 def format_dataframe_for_display(path='data/openai_ready/output_train.jsonl'):

@@ -1,4 +1,3 @@
-import random
 import streamlit as st
 
 import json
@@ -156,17 +155,24 @@ def estimate_cost(dataset, convo_lens, n_epochs_manual, cost_per_1k_tokens):
 
     col1, col2 = st.columns(2)
     col1.write(
-        f"1️⃣ Dataset has `~{n_billing_tokens_in_dataset}` tokens that will be charged for during training `(1 epoch)`\n\n"
-        f"2️⃣ \n - By default, you'll train for `{n_epochs_default}` epochs on this dataset\n\n - Or manually chosen `{n_epochs_manual}` epochs\n\n"
-        f"3️⃣ \n By default, you'll be charged for `~{n_epochs_default * n_billing_tokens_in_dataset}` tokens\n\n - Or manually chosen `~{n_epochs_manual * n_billing_tokens_in_dataset}` tokens"
+        f"1️⃣ Dataset has `~{n_billing_tokens_in_dataset}`\
+            tokens that will be charged for during training `(1 epoch)`\n\n"
+        f"2️⃣ \n - By default, you'll train for `{n_epochs_default}` epochs on this dataset\n\n\
+            - Or manually chosen `{n_epochs_manual}` epochs\n\n"
+        f"3️⃣ \n By default, you'll be charged for `~{n_epochs_default * n_billing_tokens_in_dataset}`\
+            tokens\n\n - Or manually chosen `~{n_epochs_manual * n_billing_tokens_in_dataset}` tokens"
         )
 
     col2.write(
         f"4️⃣ The cost of training per 1k tokens is ```$ {cost_per_1k_tokens:.4f}```\n\n"
-        f"5️⃣ \n - so the total cost for `{n_epochs_default} epochs` by default is `~${n_epochs_default * n_billing_tokens_in_dataset * cost_per_1k_tokens /1000:.2f}`\n\n - or manually chosen `{n_epochs_manual} epochs` `~${n_epochs_manual * n_billing_tokens_in_dataset * cost_per_1k_tokens /1000:.2f}`"
+        f"5️⃣ \n - so the total cost for `{n_epochs_default}epochs` by default is\
+            `~${n_epochs_default * n_billing_tokens_in_dataset * cost_per_1k_tokens /1000:.2f}`\n\n -\
+                or manually chosen `{n_epochs_manual} epochs`\
+                    `~${n_epochs_manual * n_billing_tokens_in_dataset * cost_per_1k_tokens /1000:.2f}`"
         )
     st.divider()
     col1, col2 = st.columns(2)
-    col1.metric("Total default cost", f"{n_epochs_default * n_billing_tokens_in_dataset * cost_per_1k_tokens / 1000 :.2f} $")
-    col2.metric("Total manual cost", f"{n_epochs_manual * n_billing_tokens_in_dataset * cost_per_1k_tokens / 1000 :.2f} $")
-
+    col1.metric("Total default cost",
+                f"{n_epochs_default * n_billing_tokens_in_dataset * cost_per_1k_tokens / 1000 :.2f} $")
+    col2.metric("Total manual cost",
+                f"{n_epochs_manual * n_billing_tokens_in_dataset * cost_per_1k_tokens / 1000 :.2f} $")
