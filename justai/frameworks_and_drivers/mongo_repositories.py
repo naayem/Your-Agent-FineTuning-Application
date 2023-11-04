@@ -3,13 +3,56 @@ from typing import List, Optional, Union
 from bson import ObjectId
 from justai.entities.agent import Agent
 from justai.entities.conversation import Conversation, Message
-from justai.interface_adapters.conversational_repository_interface import IAgentRepository
+from justai.entities.user import User
+from justai.interface_adapters.conversational_repository_interface import IAgentRepository, IUserRepository
 from justai.interface_adapters.conversational_repository_interface import IBackupRepository
 from justai.interface_adapters.conversational_repository_interface import IConversationRepository
 
 
 from pymongo import MongoClient
 from pymongo.errors import DuplicateKeyError
+
+
+class MongoUserRepository(IUserRepository):
+    def __init__(self, uri: str):
+        self.client = MongoClient(uri)
+        self.db = self.client["UserConvoDB"]
+        self.collection = self.db['user']
+
+    def get_by_name(self, user_name: str) -> Optional[User]:
+        document = self.collection.find_one({"user_name": user_name})
+        if document:
+            return User(document["user_name"])
+        return None
+
+    def create(self, user: User) -> None:
+        try:
+            self.collection.insert_one(
+                {
+                    "user_name": user.user_name
+                }
+            )
+        except DuplicateKeyError:
+            raise ValueError(f"User with name {user.user_name} already exists.")
+
+    def update(self, current_user: User, updated_user: User) -> None:
+        self.collection.update_one(
+            {
+                "user_name": current_user.user_name
+            },
+            {
+                "$set": {
+                    "user_name": updated_user.user_name
+                }
+            }
+        )
+
+    def delete(self, user: User) -> None:
+        self.collection.delete_one({"user_name": user.user_name})
+
+    def get_all(self) -> List[User]:
+        cursor = self.collection.find()
+        return [User(doc["user_name"]) for doc in cursor]
 
 
 class MongoAgentRepository(IAgentRepository):
@@ -71,13 +114,20 @@ class MongoConversationRepository(IConversationRepository):
                 raise ValueError(f"Conversation with id {conversation.id} already exists.")
             self.collection.insert_one(
                 {
-                    "_id": conversation.id,
+                    "_id": ObjectId(conversation.id),
                     "agent_name": conversation.agent_name,
-                    "messages": conversation.messages
+                    "messages": conversation.messages,
+                    "tags": conversation.tags
                     }
                 )
         else:
-            self.collection.insert_one({"agent_name": conversation.agent_name, "messages": conversation.messages})
+            self.collection.insert_one(
+                {
+                    "agent_name": conversation.agent_name,
+                    "messages": conversation.messages,
+                    "tags": conversation.tags
+                }
+            )
 
     def get_by_agent_name(self, agent_name: str) -> List[Conversation]:
         cursor = self.collection.find({"agent_name": agent_name})
@@ -85,7 +135,7 @@ class MongoConversationRepository(IConversationRepository):
         conversations = []
         for doc in cursor:
             # Assuming the MongoDB document has a 'name', 'messages', and '_id' field
-            name = doc['agent_name']
+            agent_name = doc['agent_name']
 
             # Convert list of message dicts to list of Message objects
             messages = [Message(message_doc['role'], message_doc['content']) for message_doc in doc['messages']]
@@ -93,7 +143,12 @@ class MongoConversationRepository(IConversationRepository):
             # Use the MongoDB _id as the conversation id
             id = str(doc['_id'])
 
-            conversation = Conversation(name, messages, id)
+            if 'tags' in doc:
+                tags = doc['tags']
+            else:
+                tags = []
+
+            conversation = Conversation(agent_name, messages, id, tags)
             conversations.append(conversation)
 
         return conversations
@@ -131,25 +186,36 @@ class MongoConversationRepository(IConversationRepository):
             # Use the MongoDB _id as the conversation id
             id = str(doc['_id'])
 
-            conversation = Conversation(name, messages, id)
+            if 'tags' in doc:
+                tags = doc['tags']
+            else:
+                tags = []
+
+            conversation = Conversation(name, messages, id, tags)
             conversations.append(conversation)
 
         return conversations
 
     def get_by_id(self, conversation_id: str) -> Conversation:
-        document = self.collection.find_one({"_id": ObjectId(conversation_id)})
+        document = self.collection.find_one(ObjectId(conversation_id))
         if document:
             messages = [Message(message_doc['role'], message_doc['content']) for message_doc in document['messages']]
-            return Conversation(document["agent_name"], messages, document["_id"])
+            return Conversation(document["agent_name"], messages, document["_id"], document["tags"])
         else:
             raise ValueError(f"Conversation with id {conversation_id} does not exist.")
 
     def update(self, current_conversation: Conversation, updated_conversation: Conversation) -> None:
+        '''
+        Update a conversation in the database.
+        updates the agent_name, messages, and tags fields.
+        Do not update the id field
+        '''
         self.collection.update_one(
             {"_id": current_conversation.id},
             {"$set": {
                 "agent_name": updated_conversation.agent_name,
-                "messages": updated_conversation.messages
+                "messages": [message.to_dict() for message in updated_conversation.messages],
+                "tags": updated_conversation.tags
                 }
              }
         )

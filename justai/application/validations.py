@@ -50,6 +50,26 @@ conversation_schema = {
                         }
                     }
                 }
+            },
+            "tags": {
+                "bsonType": "array",
+                "items": {
+                    "bsonType": "string"
+                },
+                "description": "List of tags associated with the conversation"
+            }
+        }
+    }
+}
+
+user_schema = {
+    "$jsonSchema": {
+        "bsonType": "object",
+        "required": ["user_name"],
+        "properties": {
+            "user_name": {
+                "bsonType": "string",
+                "description": "The unique name or identifier of the user"
             }
         }
     }

@@ -2,6 +2,48 @@ from abc import ABC, abstractmethod
 from typing import List, Optional, Union
 from justai.entities.agent import Agent
 from justai.entities.conversation import Conversation
+from justai.entities.user import User
+
+
+class IUserRepository(ABC):
+    """
+    An interface for managing users in the storage layer.
+
+    Methods:
+    - get_by_name(user_name: str) -> Optional[User]: Fetch a user by its name.
+    - create(user: User) -> None: Create a new user.
+    - update(current_user: User, updated_user: User) -> None: Update an existing user.
+    - delete(user: User) -> None: Delete a user.
+    - get_all() -> List[User]: Fetch all users.
+
+    Implementing classes should ensure these methods are provided with appropriate
+    storage-level logic to handle user data.
+    """
+
+    @abstractmethod
+    def get_by_name(self, user_name: str) -> Optional[User]:
+        """Fetch a user by its name."""
+        pass
+
+    @abstractmethod
+    def create(self, user: User) -> None:
+        """Create a new user."""
+        pass
+
+    @abstractmethod
+    def update(self, current_user: User, updated_user: User) -> None:
+        """Update an existing user."""
+        pass
+
+    @abstractmethod
+    def delete(self, user: User) -> None:
+        """Delete a user."""
+        pass
+
+    @abstractmethod
+    def get_all(self) -> List[User]:
+        """Fetch all users."""
+        pass
 
 
 class IAgentRepository(ABC):
