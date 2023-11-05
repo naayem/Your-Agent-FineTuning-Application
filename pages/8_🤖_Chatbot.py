@@ -291,8 +291,3 @@ st.session_state.chatbot.run()
 
 feedback_use_cases = FeedbackUseCases(repos["feedback"])
 feedback_management_dashboard = FeedbackManagementDashboard(feedback_use_cases, user_use_cases)
-
-st.divider()
-with st.sidebar:
-    with st.expander(":green[**Any Feedback?**]"):
-        feedback_management_dashboard.create_new_feedback()
