@@ -39,29 +39,29 @@ class StreamlitChatbot:
         self._initialize_session_state()
 
     @property
-    def user(self):
+    def user_name(self):
         return st.session_state.get('user', None)
 
-    @user.setter
-    def user(self, value):
+    @user_name.setter
+    def user_name(self, value):
         st.session_state.user = value
         self.conv_radio_index = 0
 
     @property
     def agent_name(self):
-        return st.session_state.get('agent_name', None)
+        return st.session_state.get('agent', None)
 
     @agent_name.setter
     def agent_name(self, value):
-        st.session_state.agent_name = value
+        st.session_state.agent = value
         self.conv_radio_index = 0
 
     def _initialize_session_state(self):
         """Initialize Streamlit session state variables."""
         if "user" not in st.session_state:
-            st.session_state.user = self.user
+            st.session_state.user = self.user_name
         if "agent_name" not in st.session_state:
-            st.session_state.agent_name = self.agent_name
+            st.session_state.agent = self.agent_name
 
     @st.cache_data
     def fetch_openai_ft_models(_self):
@@ -81,10 +81,10 @@ class StreamlitChatbot:
                 Message("system", f"{agent.system_prompt}"),
                 self.__class__.DEFAULT_MESSAGE_ASSISTANT
             ],
-            tags=[self.user]
+            tags=[self.user_name]
         )
         agent_convos = self.conversation_use_cases.get_by_agent_name(self.agent_name)
-        user_convos = self.conversation_use_cases.search_in_conversations_by_tag(agent_convos, self.user)
+        user_convos = self.conversation_use_cases.search_in_conversations_by_tag(agent_convos, self.user_name)
         labels.update(self.conversation_use_cases.extract_labels_from_conversations(user_convos))
         return labels
 
@@ -102,7 +102,7 @@ class StreamlitChatbot:
                         self.conversation_use_cases.create(
                             new_conv_to_save.agent_name,
                             [message.to_dict() for message in new_conv_to_save.messages],
-                            tags=[self.user, "label: " + save_name]
+                            tags=[self.user_name, "label: " + save_name]
                         )
                         st.success(f"Conversation {save_name} saved successfully!")
                         time.sleep(1)
@@ -135,13 +135,26 @@ class StreamlitChatbot:
             )
 
             with st.expander('👨‍💻 User Setup', expanded=True):
-                self.user = st.selectbox(
+                user_names = [user.user_name for user in self.user_use_cases.get_all()]
+                agent_names = [agent.name for agent in self.agent_use_cases.get_all()]
+
+                try:
+                    default_user_index = user_names.index(self.user_name)
+                except ValueError:
+                    default_user_index = 0  # or another default value like None
+                self.user_name = st.selectbox(
                     "Select a user",
-                    [user.user_name for user in self.user_use_cases.get_all()]
+                    user_names,
+                    index=default_user_index
                 )
+                try:
+                    default_agent_index = agent_names.index(self.agent_name)
+                except ValueError:
+                    default_agent_index = 0  # or another default value like None
                 self.agent_name = st.selectbox(
                     "Select an Agent",
-                    [agent.name for agent in self.agent_use_cases.get_all()]
+                    agent_names,
+                    default_agent_index
                 )
 
             if st.button("Save current conversation"):
@@ -170,7 +183,7 @@ class StreamlitChatbot:
                     or self.agent_name != self.previous_conversation.agent_name\
                     or not conversation_use_cases.search_in_conversations_by_tag(
                         [self.previous_conversation],
-                        self.user):
+                        self.user_name):
                 # The conversation has changed, so update the conversation_tree and other necessary states
                 # ! In the future conversation tree could be a tree structure
                 self.current_branch = 0
