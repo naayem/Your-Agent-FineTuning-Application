@@ -1,7 +1,9 @@
 import streamlit as st
 import justai
+from justai.frameworks_and_drivers.dashboards.feedback_dashboard import FeedbackManagementDashboard
 from justai.use_cases.agent_use_cases import AgentUseCases
 from justai.use_cases.conversation_use_cases import ConversationUseCases
+from justai.use_cases.feedback_use_cases import FeedbackUseCases
 from justai.use_cases.user_use_cases import UserUseCases
 
 import locale
@@ -26,6 +28,8 @@ if not repos:
 agent_use_cases = AgentUseCases(repos["agent"], repos["backup"], repos["conversation"])
 conversation_use_cases = ConversationUseCases(repos["agent"], repos["conversation"], repos["backup"])
 user_use_cases = UserUseCases(repos["user"])
+feedback_use_cases = FeedbackUseCases(repos["feedback"])
+feedback_management_dashboard = FeedbackManagementDashboard(feedback_use_cases, user_use_cases)
 ########################################################################################################################
 # Home Page
 ########################################################################################################################
@@ -73,3 +77,8 @@ st.session_state.agent = st.selectbox(
 # Display ready message after agent selection
 if st.session_state.user:
     st.write(f"{st.session_state.agent} is at your service!")
+
+with st.sidebar:
+    st.divider()
+    with st.expander(":green[**Any Feedback?**]"):
+        feedback_management_dashboard.create_new_feedback()
