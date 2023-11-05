@@ -4,8 +4,10 @@ import openai
 import streamlit as st
 import justai
 from justai.entities.conversation import Conversation, Message
+from justai.frameworks_and_drivers.dashboards.feedback_dashboard import FeedbackManagementDashboard
 from justai.use_cases.agent_use_cases import AgentUseCases
 from justai.use_cases.conversation_use_cases import ConversationUseCases
+from justai.use_cases.feedback_use_cases import FeedbackUseCases
 
 from justai.use_cases.user_use_cases import UserUseCases
 # ... other necessary imports
@@ -43,6 +45,7 @@ class StreamlitChatbot:
     @user.setter
     def user(self, value):
         st.session_state.user = value
+        self.conv_radio_index = 0
 
     @property
     def agent_name(self):
@@ -51,6 +54,7 @@ class StreamlitChatbot:
     @agent_name.setter
     def agent_name(self, value):
         st.session_state.agent_name = value
+        self.conv_radio_index = 0
 
     def _initialize_session_state(self):
         """Initialize Streamlit session state variables."""
@@ -68,10 +72,9 @@ class StreamlitChatbot:
 
     def fetch_conversation_labels(self):
         """Fetch labels for conversations."""
-        agent_convos = self.conversation_use_cases.get_by_agent_name(self.agent_name)
-        user_convos = self.conversation_use_cases.search_in_conversations_by_tag(agent_convos, self.user)
-        labels = self.conversation_use_cases.extract_labels_from_conversations(user_convos)
+        labels = {}
         agent = self.agent_use_cases.get_one(self.agent_name)
+
         labels[self.__class__.NEW_CONVERSATION_LABEL] = Conversation(
             agent_name=self.agent_name,
             messages=[
@@ -80,6 +83,9 @@ class StreamlitChatbot:
             ],
             tags=[self.user]
         )
+        agent_convos = self.conversation_use_cases.get_by_agent_name(self.agent_name)
+        user_convos = self.conversation_use_cases.search_in_conversations_by_tag(agent_convos, self.user)
+        labels.update(self.conversation_use_cases.extract_labels_from_conversations(user_convos))
         return labels
 
     def handle_save_conversation_form(self):
@@ -93,7 +99,7 @@ class StreamlitChatbot:
                     st.write("New conversation")
                     try:
                         st.write(new_conv_to_save)
-                        self.current_conversation = self.conversation_use_cases.create(
+                        self.conversation_use_cases.create(
                             new_conv_to_save.agent_name,
                             [message.to_dict() for message in new_conv_to_save.messages],
                             tags=[self.user, "label: " + save_name]
@@ -111,6 +117,7 @@ class StreamlitChatbot:
                             self.conversation_tree[self.current_branch],
                             "label: " + save_name
                         )
+                        st.session_state.n = save_name
                         st.success(f"Conversation {save_name} saved successfully!")
                         time.sleep(1)
                         st.rerun()
@@ -127,7 +134,7 @@ class StreamlitChatbot:
                 self.fetch_openai_ft_models()
             )
 
-            with st.expander('👨‍💻 User Setup'):
+            with st.expander('👨‍💻 User Setup', expanded=True):
                 self.user = st.selectbox(
                     "Select a user",
                     [user.user_name for user in self.user_use_cases.get_all()]
@@ -159,8 +166,11 @@ class StreamlitChatbot:
                 on_change=_set_conv_radio_index
             )
             self.current_conversation = labels[conversation_radio_id]
-
-            if self.previous_conversation.id != self.current_conversation.id:
+            if self.previous_conversation.id != self.current_conversation.id\
+                    or self.agent_name != self.previous_conversation.agent_name\
+                    or not conversation_use_cases.search_in_conversations_by_tag(
+                        [self.previous_conversation],
+                        self.user):
                 # The conversation has changed, so update the conversation_tree and other necessary states
                 # ! In the future conversation tree could be a tree structure
                 self.current_branch = 0
@@ -265,3 +275,11 @@ if "chatbot" not in st.session_state:
     st.session_state.chatbot = StreamlitChatbot(user_use_cases, agent_use_cases, conversation_use_cases)
 
 st.session_state.chatbot.run()
+
+feedback_use_cases = FeedbackUseCases(repos["feedback"])
+feedback_management_dashboard = FeedbackManagementDashboard(feedback_use_cases, user_use_cases)
+
+st.divider()
+with st.sidebar:
+    with st.expander(":green[**Any Feedback?**]"):
+        feedback_management_dashboard.create_new_feedback()

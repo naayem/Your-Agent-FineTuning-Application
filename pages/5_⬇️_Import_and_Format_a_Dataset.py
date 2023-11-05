@@ -7,8 +7,11 @@ from justai.data_openai_analysis import count_tokens_and_data_warnings
 from justai.dataset import format_dataframe_for_display, iio_jsonl_formatting, messages_jsonl_formatting
 from justai.dataset import import_gen_dataset, template_message_format_display
 import justai
+from justai.frameworks_and_drivers.dashboards.feedback_dashboard import FeedbackManagementDashboard
 from justai.use_cases.agent_use_cases import AgentUseCases
 from justai.use_cases.conversation_use_cases import ConversationUseCases
+from justai.use_cases.feedback_use_cases import FeedbackUseCases
+from justai.use_cases.user_use_cases import UserUseCases
 
 locale.getpreferredencoding = lambda: "UTF-8"
 
@@ -23,7 +26,13 @@ if not repos:
 agent_use_cases = AgentUseCases(repos["agent"], repos["backup"], repos["conversation"])
 conversation_use_cases = ConversationUseCases(repos["agent"], repos["conversation"], repos["backup"])
 
+user_use_cases = UserUseCases(repos["user"])
+feedback_use_cases = FeedbackUseCases(repos["feedback"])
+feedback_management_dashboard = FeedbackManagementDashboard(feedback_use_cases, user_use_cases)
 
+st.divider()
+with st.expander(":green[**Any Feedback?**]"):
+    feedback_management_dashboard.create_new_feedback()
 ########################################################################################################################
 # Dataset
 ########################################################################################################################

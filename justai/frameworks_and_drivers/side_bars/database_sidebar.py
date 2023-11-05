@@ -1,6 +1,7 @@
 import streamlit as st
 from typing import Union, Dict
 
+from justai.frameworks_and_drivers.mongo_feedback_repository import MongoFeedbackRepository
 from justai.frameworks_and_drivers.mongo_repositories import MongoAgentRepository, MongoBackupRepository
 from justai.frameworks_and_drivers.mongo_repositories import MongoConversationRepository, MongoUserRepository
 from justai.interface_adapters.conversational_repository_interface import IAgentRepository, IBackupRepository
@@ -11,7 +12,8 @@ REPOSITORIES = {
         'user': MongoUserRepository,
         'agent': MongoAgentRepository,
         'conversation': MongoConversationRepository,
-        'backup': MongoBackupRepository
+        'backup': MongoBackupRepository,
+        'feedback': MongoFeedbackRepository
     }
 }
 

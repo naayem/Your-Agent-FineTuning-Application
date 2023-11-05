@@ -145,7 +145,7 @@ def conversation_management_dashboard(
     conversation_use_cases: ConversationUseCases,
     agent_names: List[str],
     conversations: List[Conversation],
-    expander: False
+    expander: bool = False
 ):
     # Display the conversations
     st.header("Conversation Management Dashboard")

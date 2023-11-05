@@ -3,7 +3,10 @@ import streamlit as st
 import justai
 from justai.frameworks_and_drivers.dashboards.agent_dashboard import agent_management_dashboard
 from justai.frameworks_and_drivers.dashboards.conversation_dashboard import conversation_management_dashboard
+from justai.frameworks_and_drivers.dashboards.feedback_dashboard import FeedbackManagementDashboard
 from justai.frameworks_and_drivers.dashboards.generate_synthetic_conversation import conversation_generator_dashboard
+from justai.use_cases.feedback_use_cases import FeedbackUseCases
+from justai.use_cases.user_use_cases import UserUseCases
 
 
 if 'agent' not in st.session_state:
@@ -29,6 +32,10 @@ conversation_use_cases = justai.use_cases.conversation_use_cases.ConversationUse
     repos["conversation"],
     repos["backup"]
 )
+
+user_use_cases = UserUseCases(repos["user"])
+feedback_use_cases = FeedbackUseCases(repos["feedback"])
+feedback_management_dashboard = FeedbackManagementDashboard(feedback_use_cases, user_use_cases)
 
 ########################################################################################################################
 # TABLES
@@ -112,3 +119,7 @@ with st.expander("# Conversation Management Dashboard", expanded=False):
         conversations,
         expander=False
     )
+
+st.divider()
+with st.expander(":green[**Any Feedback?**]"):
+    feedback_management_dashboard.create_new_feedback()
