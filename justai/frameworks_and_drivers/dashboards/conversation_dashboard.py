@@ -5,7 +5,11 @@ from justai.use_cases.agent_use_cases import AgentUseCases
 from justai.use_cases.conversation_use_cases import ConversationUseCases
 import streamlit as st
 
+<<<<<<< HEAD
 from streamlit_extras.dataframe_explorer import dataframe_explorer
+=======
+from justai.frameworks_and_drivers.dashboards.extra_dataframe_explorer import dataframe_explorer
+>>>>>>> c6a8f0f (Remove unused files and update dependencies)
 
 if "user" not in st.session_state:
     st.session_state.user = "None"
@@ -13,6 +17,13 @@ if "agent" not in st.session_state:
     st.session_state.agent = "None"
 
 
+<<<<<<< HEAD
+=======
+def _set_agent_memory():
+    st.session_state.agent = st.session_state.conv_dashboard_agent_select
+
+
+>>>>>>> c6a8f0f (Remove unused files and update dependencies)
 def generate_dummy_conversation(selected_agent_cf_prompt: str, nb_exchanges: int) -> List[Dict]:
     messages = [{"role": "system", "content": selected_agent_cf_prompt}]
 
@@ -56,7 +67,11 @@ def flatten_conversation(convo):
     flattened = {
         "id": convo["id"],
         "agent_name": convo["agent_name"],
+<<<<<<< HEAD
         "tags": ', '.join(convo["tags"])
+=======
+        "tags": convo["tags"]
+>>>>>>> c6a8f0f (Remove unused files and update dependencies)
     }
     # Convert the messages list into a single string
     messages_str = ' | '.join([f"{msg.split(',')[0].split('=')[1]}:\
@@ -71,6 +86,12 @@ def display_conversations(conversations: List[Conversation]):
     flattened_df = pd.DataFrame(flattened_conversations)
     filtered_conv_df = dataframe_explorer(flattened_df, case=False)
     st.dataframe(filtered_conv_df, use_container_width=True)
+<<<<<<< HEAD
+=======
+    flattened_df = pd.DataFrame(all_conversations_for_df)
+    #filtered_conv_df = extra_dataframe_explorer(flattened_df)
+    #st.dataframe(filtered_conv_df, use_container_width=True)
+>>>>>>> c6a8f0f (Remove unused files and update dependencies)
 
 
 def create_conversation(
@@ -88,6 +109,7 @@ def create_conversation(
         max_value=1000,
         step=1
     )
+<<<<<<< HEAD
     try:
         default_index = agent_names.index(st.session_state.agent)
     except ValueError:
@@ -98,6 +120,21 @@ def create_conversation(
         index=default_index
         )
     st.session_state.agent = selected_agent_name
+=======
+
+    try:
+        default_agent_index = agent_names.index(st.session_state.agent)
+    except ValueError:
+        default_agent_index = 0
+    selected_agent_name = st.selectbox(
+        "Select Agent linked to the conversation",
+        agent_names,
+        index=default_agent_index,
+        key="conv_dashboard_agent_select",
+        on_change=_set_agent_memory
+    )
+
+>>>>>>> c6a8f0f (Remove unused files and update dependencies)
     selected_agent = None
     if selected_agent_name:
         selected_agent = agent_use_cases.get_one(selected_agent_name)
@@ -106,6 +143,28 @@ def create_conversation(
         st.warning("No agent selected")
         dummy_messages = []
 
+<<<<<<< HEAD
+=======
+    if 'tags' not in st.session_state:
+        st.session_state.tags = []
+
+    if not st.session_state.tags:
+        st.session_state.tags.append(st.session_state.user)
+    if st.session_state.user not in st.session_state.tags:
+        st.session_state.tags[0] = st.session_state.user
+
+    st.write(f"User: {st.session_state.user}")
+    with st.form("Add Tag form"):
+        add_tag = st.text_input("Additional tag:")
+        c1, c2 = st.columns(2)
+        if c1.form_submit_button("Add Tag"):
+            st.session_state.tags.append(add_tag)
+        if c2.form_submit_button("Clear Tags"):
+            st.session_state.tags.clear()
+
+    st.write(f"Tags: {st.session_state.tags}")
+    tags_select = st.multiselect("Select tags", st.session_state.tags)
+>>>>>>> c6a8f0f (Remove unused files and update dependencies)
     with st.form("Create Conversation form"):
         if selected_agent:
             st.write(f"Selected Agent: {selected_agent.name}")
@@ -116,7 +175,11 @@ def create_conversation(
 
         if submit_conversation and messages and selected_agent:
             try:
+<<<<<<< HEAD
                 conversation_use_cases.create(selected_agent.name, messages)
+=======
+                conversation_use_cases.create(selected_agent.name, messages, tags=tags_select)
+>>>>>>> c6a8f0f (Remove unused files and update dependencies)
                 st.success("Conversation created successfully!")
                 st.rerun()
             except Exception as e:

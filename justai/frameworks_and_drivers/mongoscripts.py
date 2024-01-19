@@ -2,7 +2,7 @@ from pymongo import MongoClient
 from justai.application.schemas import agent_schema, conversation_schema, user_schema
 
 # Connect to MongoDB
-client = MongoClient("")  # Replace with your MongoDB connection link
+client = MongoClient("mongodb+srv://vincentnaayem:rKYU8c6KamkURYl1@youragent.tup5c.mongodb.net/?retryWrites=true&w=majority")  # Replace with your MongoDB connection link
 db = client['AgentConvoDB']   # Replace with your desired database name
 
 # Create collections with validation

@@ -11,6 +11,12 @@ class UserManagementDashboard:
         if "user" not in st.session_state:
             st.session_state.user = "None"
 
+<<<<<<< HEAD
+=======
+    def _set_user_memory(self):
+        st.session_state.user = st.session_state.user_dashboard_user_select
+
+>>>>>>> c6a8f0f (Remove unused files and update dependencies)
     def display_users(self):
         users = self.user_use_cases.get_all()
         users_df = pd.json_normalize([user.to_dict() for user in users])
@@ -34,6 +40,7 @@ class UserManagementDashboard:
     def remove_user(self):
         users = self.user_use_cases.get_all()
         user_names = [user.user_name for user in users]
+<<<<<<< HEAD
         try:
             default_index = user_names.index(st.session_state.user) if st.session_state.user in user_names else 0
         except ValueError:
@@ -43,6 +50,12 @@ class UserManagementDashboard:
                 "Choose User to Remove",
                 user_names,
                 index=default_index,
+=======
+        with st.form("Remove User form"):
+            selected_user_name_to_delete = st.selectbox(
+                "Choose User to Remove",
+                user_names
+>>>>>>> c6a8f0f (Remove unused files and update dependencies)
             )
             delete_user = st.form_submit_button("Unregister User")
             if delete_user and selected_user_name_to_delete:
@@ -65,8 +78,14 @@ class UserManagementDashboard:
             "Choose User to Edit",
             user_names,
             index=default_index,
+<<<<<<< HEAD
         )
         st.session_state.user = selected_user_name
+=======
+            on_change=self._set_user_memory,
+            key="user_dashboard_user_select"
+        )
+>>>>>>> c6a8f0f (Remove unused files and update dependencies)
         with st.form("Modify User form"):
             new_user_name = st.text_input("New User Name", value=selected_user_name or "")
             modify_user = st.form_submit_button("Update User")

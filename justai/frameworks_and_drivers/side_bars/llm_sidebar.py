@@ -11,7 +11,10 @@ def llm_sidebar():
         with st.expander('🔑 OpenAI API Key'):
             if 'OPENAI_TOKEN' in st.secrets:
                 openai_api_key = st.secrets['OPENAI_TOKEN']
+<<<<<<< HEAD
                 openai.api_key = openai_api_key
+=======
+>>>>>>> c6a8f0f (Remove unused files and update dependencies)
                 st.success('OpenAI API key provided!', icon='✅')
             else:
                 openai_api_key = st.text_input(
@@ -26,4 +29,8 @@ def llm_sidebar():
                     st.success('Proceed to explore Fine-Tuning!', icon='👉')
 
             st.button("Reset", type="primary")
+<<<<<<< HEAD
     return openai_api_key
+=======
+    return openai.OpenAI(api_key=openai_api_key)
+>>>>>>> c6a8f0f (Remove unused files and update dependencies)

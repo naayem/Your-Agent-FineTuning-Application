@@ -23,7 +23,11 @@ def display_agents(agents):
 def create_new_agent(agent_use_cases: AgentUseCases):
     with st.form("Create Agent form"):
         agent_name = st.text_input("Enter agent name")
+<<<<<<< HEAD
         system_prompt = st.text_input("Enter system prompt for agent")
+=======
+        system_prompt = st.text_area("Enter system prompt for agent")
+>>>>>>> c6a8f0f (Remove unused files and update dependencies)
         submit_agent = st.form_submit_button("Create Agent")
 
         if submit_agent and agent_name and system_prompt:
@@ -38,6 +42,7 @@ def create_new_agent(agent_use_cases: AgentUseCases):
 
 
 def remove_agent(agent_use_cases: AgentUseCases, agent_names: List[str]):
+<<<<<<< HEAD
     try:
         default_index = agent_names.index(st.session_state.agent)
     except ValueError:
@@ -47,6 +52,12 @@ def remove_agent(agent_use_cases: AgentUseCases, agent_names: List[str]):
             "Select Agent to Remove",
             agent_names,
             index=default_index
+=======
+    with st.form("Remove Agent form"):
+        selected_agent_name = st.selectbox(
+            "Select Agent to Remove",
+            agent_names
+>>>>>>> c6a8f0f (Remove unused files and update dependencies)
         )
         delete_agent = st.form_submit_button("Remove Agent")
 
@@ -61,6 +72,7 @@ def remove_agent(agent_use_cases: AgentUseCases, agent_names: List[str]):
 
 
 def update_agent_details(agent_use_cases: AgentUseCases, agent_names: List[str]):
+<<<<<<< HEAD
     try:
         default_index = agent_names.index(st.session_state.agent)
     except ValueError:
@@ -69,6 +81,11 @@ def update_agent_details(agent_use_cases: AgentUseCases, agent_names: List[str])
         "Choose an agent to update its details.",
         agent_names,
         index=default_index
+=======
+    selected_agent_name = st.selectbox(
+        "Choose an agent to update its details.",
+        agent_names
+>>>>>>> c6a8f0f (Remove unused files and update dependencies)
     )
     st.session_state.agent = selected_agent_name
     current_system_prompt = None
@@ -82,7 +99,11 @@ def update_agent_details(agent_use_cases: AgentUseCases, agent_names: List[str])
             "Enter the updated name for the selected agent.",
             value=selected_agent_name or "None"
         )
+<<<<<<< HEAD
         new_system_prompt = st.text_input(
+=======
+        new_system_prompt = st.text_area(
+>>>>>>> c6a8f0f (Remove unused files and update dependencies)
             "Modify the system prompt.\
             The text for initial guidance or starter text for engaging with the selected agent.",
             value=current_system_prompt or ""

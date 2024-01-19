@@ -16,7 +16,11 @@ from pymongo.errors import DuplicateKeyError
 class MongoUserRepository(IUserRepository):
     def __init__(self, uri: str):
         self.client = MongoClient(uri)
+<<<<<<< HEAD
         self.db = self.client["UserConvoDB"]
+=======
+        self.db = self.client["AgentConvoDB"]
+>>>>>>> c6a8f0f (Remove unused files and update dependencies)
         self.collection = self.db['user']
 
     def get_by_name(self, user_name: str) -> Optional[User]:

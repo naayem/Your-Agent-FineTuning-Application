@@ -1,8 +1,47 @@
+import io
 import streamlit as st
 import openai
 from audiorecorder import audiorecorder
 from st_audiorec import st_audiorec
 import os
+
+# Initialize your OpenAI client with your API key
+client = openai.OpenAI(api_key=st.secrets["OPENAI_TOKEN"])
+models_list = client.models.list().data
+
+# Filter models owned by 'epfl-42' and get their ids
+ft_openai_models = [model.id for model in models_list if model.owned_by == "epfl-42"]
+
+st.write(ft_openai_models)
+
+voices = ['alloy', 'echo', 'fable', 'onyx', 'nova', 'shimmer']
+
+sel_voice = st.radio("Select a voice", voices)
+# Streamlit app layout
+st.title("Text-to-Speech App")
+
+# Text input for text-to-speech
+input_text = st.text_area("Enter text for speech synthesis:")
+
+if st.button("Convert to Speech"):
+    if input_text:
+        # Convert text to speech
+        response = client.audio.speech.create(
+            model="tts-1",
+            voice=sel_voice,
+            input=input_text,
+        )
+
+        # Convert the binary response content to a byte stream
+        byte_stream = io.BytesIO(response.content)
+        response.stream_to_file("stream_to_file.mp3")
+        st.audio("stream_to_file.mp3", format='audio/mp3')
+
+        # Display the audio file in the Streamlit app
+        st.audio(byte_stream, format='audio/mp3')
+    else:
+        st.error("Please enter some text to convert.")
+
 
 ########################################################################################################################
 # TEST AUDIO

@@ -9,7 +9,7 @@ readme = "README.md"
 python = "^3.11.0"
 streamlit = "^1.26.0"
 tiktoken = "^0.5.1"
-openai = "^0.28.0"
+openai = "^1.1.1"
 streamlit-audiorecorder = "^0.0.3.post1"
 streamlit-audiorec = "^0.1.3"
 langchain = "^0.0.302"
@@ -17,6 +17,10 @@ matplotlib = "^3.8.0"
 streamlit-sortables = "^0.2.0"
 pymongo = "^4.5.0"
 streamlit-extras = "^0.3.4"
+<<<<<<< HEAD
+=======
+pathlib = "^1.0.1"
+>>>>>>> c6a8f0f (Remove unused files and update dependencies)
 
 
 [build-system]

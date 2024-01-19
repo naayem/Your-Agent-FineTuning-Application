@@ -1,3 +1,7 @@
+<<<<<<< HEAD
+=======
+import re
+>>>>>>> c6a8f0f (Remove unused files and update dependencies)
 from time import sleep
 from typing import List
 import openai
@@ -29,7 +33,18 @@ def convert_to_list_of_dicts(data_str):
         .replace("'},", '"},')\
         .replace(": '", ': "')\
         .replace("'}]", '"}]')\
+<<<<<<< HEAD
         .replace("'} ]", '"}]')
+=======
+        .replace("'} ]", '"}]')\
+        .replace("' } ]", '"}]')\
+        .replace("' }]", '"}]')
+
+    # First, correct the quotes within "content": " ... "}
+    corrected_data_str = re.sub(r'("content": ")(.*?)("},)',
+                                lambda match: match.group(1) + match.group(2).replace('"', "'") + match.group(3),
+                                corrected_data_str)
+>>>>>>> c6a8f0f (Remove unused files and update dependencies)
 
     st.write("CORRECTED")
     st.write(corrected_data_str)
@@ -99,7 +114,11 @@ def select_a_conversation_generation_prompt(agent: Agent):
     return agent_cgp_key
 
 
+<<<<<<< HEAD
 def conversation_generator_pipeline(agent: Agent, agent_cgp_key: str) -> List:
+=======
+def conversation_generator_pipeline(openai_client: openai.OpenAI, agent: Agent, agent_cgp_key: str) -> List:
+>>>>>>> c6a8f0f (Remove unused files and update dependencies)
     """_summary_
     Current Pipeline for Conversation Generation:
     1. Description of the conversation to generate
@@ -168,11 +187,19 @@ def conversation_generator_pipeline(agent: Agent, agent_cgp_key: str) -> List:
         selected_model = st.selectbox("Model", ["gpt-3.5-turbo", "gpt-3.5-turbo", "gpt-4"])
 
         if st.form_submit_button("Generate"):
+<<<<<<< HEAD
             response = openai.ChatCompletion.create(
                 model=selected_model,
                 messages=generation_input_prompt
             )
             generated_conversation = convert_to_list_of_dicts(response['choices'][0]['message']['content'])
+=======
+            response = openai_client.chat.completions.create(
+                model=selected_model,
+                messages=generation_input_prompt
+            )
+            generated_conversation = convert_to_list_of_dicts(response.choices[0].message.content)
+>>>>>>> c6a8f0f (Remove unused files and update dependencies)
             st.session_state.generated_conversation
             st.success("Generation completed!")
             sleep(2)
@@ -194,6 +221,10 @@ def display_data_generation_prompts(agent: Agent):
 
 
 def conversation_generator_dashboard(
+<<<<<<< HEAD
+=======
+    openai_client: openai.OpenAI,
+>>>>>>> c6a8f0f (Remove unused files and update dependencies)
     agent_use_cases: AgentUseCases,
     conversation_use_cases: ConversationUseCases,
     agent_name: str,
@@ -209,7 +240,11 @@ def conversation_generator_dashboard(
     agent_cgp_key = select_a_conversation_generation_prompt(agent)
 
     st.subheader("Generate a conversation with descriptions and instructions")
+<<<<<<< HEAD
     generated_conversation = conversation_generator_pipeline(agent, agent_cgp_key)
+=======
+    generated_conversation = conversation_generator_pipeline(openai_client, agent, agent_cgp_key)
+>>>>>>> c6a8f0f (Remove unused files and update dependencies)
 
     st.subheader("Edit and save the generated conversation")
     edit_and_post_json_conversation(agent_name, agent_use_cases, conversation_use_cases, generated_conversation)

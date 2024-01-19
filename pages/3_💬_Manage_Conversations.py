@@ -11,6 +11,14 @@ from justai.use_cases.user_use_cases import UserUseCases
 
 st.set_page_config(layout="wide")
 
+<<<<<<< HEAD
+=======
+if "user" not in st.session_state:
+    st.session_state.user = "None"
+if "agent" not in st.session_state:
+    st.session_state.agent = "None"
+
+>>>>>>> c6a8f0f (Remove unused files and update dependencies)
 ########################################################################################################################
 # SIDEBAR
 ########################################################################################################################

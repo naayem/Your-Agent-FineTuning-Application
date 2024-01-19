@@ -9,6 +9,13 @@ from justai.use_cases.feedback_use_cases import FeedbackUseCases
 from justai.use_cases.user_use_cases import UserUseCases
 
 
+<<<<<<< HEAD
+=======
+def _set_agent_memory():
+    st.session_state.agent = st.session_state.conv_gen_agent_select
+
+
+>>>>>>> c6a8f0f (Remove unused files and update dependencies)
 if 'agent' not in st.session_state:
     st.session_state.agent = ""
 if 'generated_conversation' not in st.session_state:
@@ -18,6 +25,10 @@ if 'generated_conversation' not in st.session_state:
 # SIDEBAR
 ########################################################################################################################
 repos = justai.frameworks_and_drivers.database_sidebar.database_sidebar()
+<<<<<<< HEAD
+=======
+openai_client = justai.frameworks_and_drivers.llm_sidebar.llm_sidebar()
+>>>>>>> c6a8f0f (Remove unused files and update dependencies)
 
 if not repos:
     st.warning("Please configure the database connection first.")
@@ -98,13 +109,23 @@ except ValueError:
 agent_name = st.selectbox(
     "With Which Agent do you want to work with?",
     agent_names,
+<<<<<<< HEAD
     index=default_index)
+=======
+    index=default_index,
+    key="conv_gen_agent_select",
+    on_change=_set_agent_memory)
+>>>>>>> c6a8f0f (Remove unused files and update dependencies)
 st.session_state.agent = agent_name
 if not agent_name:
     st.error("Please select an agent")
 
 st.divider()
+<<<<<<< HEAD
 conversation_generator_dashboard(agent_use_cases, conversation_use_cases, agent_name)
+=======
+conversation_generator_dashboard(openai_client, agent_use_cases, conversation_use_cases, agent_name)
+>>>>>>> c6a8f0f (Remove unused files and update dependencies)
 
 st.divider()
 st.header("other Dashboards")

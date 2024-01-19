@@ -44,12 +44,21 @@ class FeedbackManagementDashboard:
 
     def delete_feedback(self):
         feedbacks = self.feedback_use_cases.get_all()
+<<<<<<< HEAD
         feedback_ids = [feedback.id for feedback in feedbacks]
         feedback_id_to_delete = st.selectbox("Choose Feedback to Remove", feedback_ids)
         if st.button("Delete Feedback"):
             try:
                 self.feedback_use_cases.delete(feedback_id_to_delete)
                 st.success(f"Feedback with ID '{feedback_id_to_delete}' has been removed successfully.")
+=======
+        feedback_labels = [feedback.label for feedback in feedbacks]
+        feedback_label_to_delete = st.selectbox("Choose Feedback to Remove", feedback_labels)
+        if st.button("Delete Feedback"):
+            try:
+                self.feedback_use_cases.delete(feedback_label_to_delete)
+                st.success(f"Feedback with label '{feedback_label_to_delete}' has been removed successfully.")
+>>>>>>> c6a8f0f (Remove unused files and update dependencies)
                 time.sleep(1)
                 st.rerun()
             except Exception as e:
