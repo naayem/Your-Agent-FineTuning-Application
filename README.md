@@ -1,4 +1,6 @@
-# Just Your Agent FineTuning Application - README
+[![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://justyouragent.streamlit.app/)
+
+# Just Your Agent FineTuning Application
 ## Introduction
 Welcome to the JYA FineTuning application! This Streamlit application is designed to empower users to create and manage their personalized AI agents. With a focus on customization and user interaction, this application allows you to train an AI agent to suit your specific needs, whether it be for assistance, expertise, or conversational capabilities.
 
